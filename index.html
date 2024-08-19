@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .task {
+            margin-bottom: 1em;
+            padding: 1em;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Task Manager</h1>
+    <div id="tasks"></div>
+
+    <h2>Add Task</h2>
+    <form id="taskForm">
+        <input type="text" id="title" placeholder="Task Title" required />
+        <input type="text" id="description" placeholder="Task Description" required />
+        <input type="text" id="status" placeholder="Task Status" value="pending" required />
+        <button type="submit">Add Task</button>
+    </form>
+
+    <script>
+        const API_URL = 'http://localhost:3000/tasks';
+
+        const fetchTasks = async () => {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const tasks = await response.json();
+                const tasksContainer = document.getElementById('tasks');
+                tasksContainer.innerHTML = tasks.map(task => `
+            <div class="task">
+                <h3>${task.title}</h3>
+                <p>${task.description}</p>
+                <p>Status: ${task.status}</p>
+            </div>
+        `).join('');
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        };
+
+        const addTask = async (event) => {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const status = document.getElementById('status').value;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, status })
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                await response.json(); // optional, if you need to process the response
+                fetchTasks();
+                document.getElementById('taskForm').reset(); // clear the form
+            } catch (error) {
+                console.error('Error adding task:', error);
+            }
+        };
+
+        document.getElementById('taskForm').addEventListener('submit', addTask);
+        fetchTasks();
+
+    </script>
+</body>
+
+</html>
